@@ -1,12 +1,8 @@
 # xv6-rust
 
-This is a project to port the popular 32-bit learner's OS, xv6, over to the Rust programming language. I started this project as an undergraduate research project to gain more experience with operating systems and Rust.
+This is a project to port the popular 32-bit learner's OS, xv6, over to the Rust programming language. This project is forked from the [original work](https://github.com/connorkuehl/xv6-rust) by `connerkuehl`. The original work is a read-only repo. 
 
 One of the motivating academic factors behind this project (which has played a huge role in making this project possible for school credit) is assessing Rust's viability as a low level systems language.
-
-[Click here](README) to see the original README that accompanied the xv6 revision 10 distribution.
-
-[Click here](README-PDX) to see the original Portland State README that accompanied the course-specific xv6 distribution.
 
 # Building and Running
 
