@@ -31,6 +31,7 @@ Building:
 Running:
 
 1. Run `make run`.
+2. To quit, first hit `Ctrl-A`, then `C` to get to qemu's terminal. Type `quit` and hit `Enter` to quit. 
 
 Debugging:
 
