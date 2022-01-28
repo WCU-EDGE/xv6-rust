@@ -2,6 +2,8 @@
 
 This is a project to port the popular 32-bit learner's OS, xv6, over to the Rust programming language. This project is forked from the [original work](https://github.com/connorkuehl/xv6-rust) by `connerkuehl`. 
 
+Original documentation for xv6 can be found at: https://pdos.csail.mit.edu/6.828/2012/xv6.html 
+
 The original work is a read-only repo dated back in 2019. Evan Older (CSC525 Fall 2021) provided the corrected version of Cargo dependencies to make the project runs. 
 
 One of the motivating academic factors behind this project (which has played a huge role in making this project possible for school credit) is assessing Rust's viability as a low level systems language.
