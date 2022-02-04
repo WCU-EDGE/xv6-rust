@@ -20,8 +20,6 @@ Prerequisites:
 
 1. The Rust compiler.
 
-1. `cargo-xbuild` (`cargo install cargo-xbuild`).
-
 1. A nightly override for the cloned repository (`rustup override set nightly`).
 
 1. The Rust source (`rustup component add rust-src`).
