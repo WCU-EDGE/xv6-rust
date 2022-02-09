@@ -1,5 +1,8 @@
 #![no_std]
 
+#![feature(abi_x86_interrupt)]
+#![feature(format_args_nl)]
+
 #[macro_use]
 extern crate bitfield;
 #[macro_use]
@@ -22,18 +25,30 @@ pub mod mmu;
 pub mod param;
 pub mod pipe;
 pub mod proc;
-pub mod spinlock;
 pub mod trap;
 pub mod traps;
 pub mod types;
-pub mod uart;
+mod kalloc;
+pub mod interrupts;
 
-
+use core::arch::asm;
 use core::panic::PanicInfo;
 
 #[no_mangle]
-pub unsafe extern "C" fn kmain() {
-    println!("Hello from {}", "Rust");
+pub extern "C" fn rust_main() {
+    interrupts::init();
+
+    console::clear_screen();
+    println!("Welcome to Rust xV6!");
+
+    let x = 12;
+    println!("The value of x is {}", x);
+    println!("Testing vision by 0...");
+    unsafe {
+        asm!("mov dx, 0; div dx");
+    }
+
+    loop {}
 }
 
 #[panic_handler]
