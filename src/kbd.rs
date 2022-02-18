@@ -1,4 +1,4 @@
-use console::consoleintr;
+use console::console_interrupt;
 use x86::io::inb;
 
 // PC keyboard interface constants
@@ -9,15 +9,15 @@ const KBDATAP: u16 = 0x60;    // kbd data port(I)
 
 const NO: u8 = 0;
 
-const SHIFT: u8 = (1<<0);
-const CTL: u8 = (1<<1);
-const ALT: u8 = (1<<2);
+const SHIFT: u8 = 1<<0;
+const CTL: u8 = 1<<1;
+const ALT: u8 = 1<<2;
 
-const CAPSLOCK: u8 = (1<<3);
-const NUMLOCK: u8 = (1<<4);
-const SCROLLLOCK: u8 = (1<<5);
+const CAPSLOCK: u8 = 1<<3;
+const NUMLOCK: u8 = 1<<4;
+const SCROLLLOCK: u8 = 1<<5;
 
-const E0ESC: usize = (1<<6);
+const E0ESC: usize = 1<<6;
 
 // Special keycodes
 const KEY_HOME: u8 = 0xE0;
@@ -213,14 +213,11 @@ static TOGGLECODE: [u8; 256] = [
     NO,   NO,   NO,   NO,   NO,   NO,   NO,   NO,
 ];
 
-#[no_mangle]
-pub extern "C" fn kbdintr() {
-    unsafe {
-        consoleintr(kbdgetc);
-    }
+pub fn keyboard_interrupt() {
+    console_interrupt(keyboard_get_character);
 }
 
-pub extern "C" fn kbdgetc() -> i32 {
+pub fn keyboard_get_character() -> i32 {
     static mut SHIFT_VAR: usize = 0;
     static CHARCODE: [&'static [u8]; 4] = [&NORMALMAP, &SHIFTMAP, &CTLMAP, &CTLMAP];
     let st = unsafe { inb(KBSTATP as u16) };
