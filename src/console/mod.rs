@@ -1,3 +1,6 @@
+//! # Console
+//! A basic console supporting input and output. Console provides a generic wrapper around UART and VGA.
+//! ASCII is the only supported encoding.
 extern crate spin;
 use spin::Mutex;
 use core::fmt;
@@ -31,11 +34,13 @@ macro_rules! println {
     })
 }
 
+/// Clears the screen.
 pub fn clear_screen() {
   VGA_CONSOLE.lock().clear_screen();
   UART_CONSOLE.lock().clear_screen();
 }
 
+/// Prints format arguments to the screen. This should not be used directly. Instead use the print! macros.
 pub fn print(args: fmt::Arguments) {
   use core::fmt::Write;
   LOCK.lock();
