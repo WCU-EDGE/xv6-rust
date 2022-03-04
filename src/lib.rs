@@ -30,6 +30,7 @@ pub mod traps;
 pub mod types;
 mod kalloc;
 pub mod interrupts;
+mod memory_layout;
 
 use core::arch::asm;
 use core::panic::PanicInfo;
