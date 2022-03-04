@@ -92,7 +92,7 @@ impl VgaWriter {
   }
 
   fn new_line(&mut self) {
-    if min(BUFFER_HEIGHT - 1, self.row_position + 1) >= BUFFER_HEIGHT {
+    if min(BUFFER_HEIGHT - 1, self.row_position) == BUFFER_HEIGHT - 1 {
       for row in 1..BUFFER_HEIGHT {
         for col in 0..BUFFER_WIDTH {
           let character = unsafe {
