@@ -59,3 +59,15 @@ bitfield!{
     g, _: 55;
     base_31_24, _: 63, 56;
 }
+
+pub const PAGE_SIZE: usize = 4096;
+
+/// Rounds up to the nearest page.
+pub const fn page_round_up(address: usize) -> usize {
+    return (address + PAGE_SIZE - 1) & !(PAGE_SIZE - 1)
+}
+
+/// Rounds down to the nearest page.
+pub const fn page_round_down(address: usize) -> usize {
+    return address & !(PAGE_SIZE - 1)
+}
