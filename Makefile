@@ -4,7 +4,10 @@ OUTDIR = target/kernel
 # Setting this to true will dump the asm, which takes way longer and runs even when simply running qemu.
 # A clean build with this enabled took 36 seconds, while disabling it only took 18 seconds.
 # So simply running the kernel will take around 16 seconds if you enable this.
-DEBUG = false
+DUMP_ASM = false
+
+# Setting this to true will strip binary files and optimize builds.
+RELEASE = false
 
 # Cross-compiling (e.g., on Mac OS X)
 # TOOLPREFIX = i386-jos-elf
@@ -76,7 +79,11 @@ ifneq ($(shell $(CC) -dumpspecs 2>/dev/null | grep -e '[^f]nopie'),)
 CFLAGS += -fno-pie -nopie
 endif
 
+ifeq ($(RELEASE),true)
+RUST_OS := target/i386/release/libxv6.a
+else
 RUST_OS := target/i386/debug/libxv6.a
+endif
 
 xv6.img: bootblock kernel
 	$(info xv6.img:)
@@ -95,7 +102,7 @@ bootblock: bootasm.S bootmain.c
 	$(CC) $(CFLAGS) -fno-pic -O -nostdinc -I. -c bootmain.c -o $(OUTDIR)/bootmain.o
 	$(CC) $(CFLAGS) -fno-pic -nostdinc -I. -c bootasm.S -o $(OUTDIR)/bootasm.o
 	$(LD) $(LDFLAGS) -N -e start -Ttext 0x7C00 -o $(OUTDIR)/bootblock.o $(OUTDIR)/bootasm.o $(OUTDIR)/bootmain.o
-ifeq ($(DEBUG),true)
+ifeq ($(DUMP_ASM),true)
 	$(OBJDUMP) -S $(OUTDIR)/bootblock.o > $(OUTDIR)/bootblock.asm
 endif
 	$(OBJCOPY) -S -O binary -j .text $(OUTDIR)/bootblock.o $(OUTDIR)/bootblock
@@ -114,21 +121,33 @@ entryother: entryother.S
 	$(CC) $(CFLAGS) -fno-pic -nostdinc -I. -c entryother.S -o $(OUTDIR)/entryother.o # changed this last part
 	$(LD) $(LDFLAGS) -N -e start -Ttext 0x7000 -o $(OUTDIR)/bootblockother.o $(OUTDIR)/entryother.o
 	$(OBJCOPY) -S -O binary -j .text $(OUTDIR)/bootblockother.o $(OUTDIR)/entryother
-ifeq ($(DEBUG),true)
+ifeq ($(DUMP_ASM),true)
 	$(OBJDUMP) -S $(OUTDIR)/bootblockother.o > $(OUTDIR)/entryother.asm
 endif
 
 kernel: rkernel main.o entry.o entryother kernel.ld
 	$(info kernel:)
 	$(LD) $(LDFLAGS) -T kernel.ld -o $(OUTDIR)/kernel $(OUTDIR)/entry.o $(OUTDIR)/main.o $(RUST_OS) -b binary $(OUTDIR)/entryother
-ifeq ($(DEBUG),true)
+ifeq ($(DUMP_ASM),true)
 	$(OBJDUMP) -S $(OUTDIR)/kernel > $(OUTDIR)/kernel.asm
-endif
 	$(OBJDUMP) -t kernel | sed '1,/SYMBOL TABLE/d; s/ .* / /; /^$$/d' > $(OUTDIR)/kernel.sym
+endif
 
 rkernel:
 	$(info rkernel:)
+ifeq ($(RELEASE),true)
+	$(CARGO) build -Z build-std=core,alloc,compiler_builtins -Z build-std-features=compiler-builtins-mem --target i386.json --release
+else
 	$(CARGO) build -Z build-std=core,alloc,compiler_builtins -Z build-std-features=compiler-builtins-mem --target i386.json
+endif
+
+docs:
+	$(info docs:)
+	$(CARGO) doc -Z build-std=core,alloc,compiler_builtins -Z build-std-features=compiler-builtins-mem --target i386.json
+
+docs-open:
+	$(info docs:)
+	$(CARGO) doc --open -Z build-std=core,alloc,compiler_builtins -Z build-std-features=compiler-builtins-mem --target i386.json
 
 # kernelmemfs is a copy of kernel that maintains the
 # disk image in memory instead of writing to a disk.
@@ -140,7 +159,7 @@ MEMFSOBJS = $(filter-out ide.o,main.o) memide.o
 kernelmemfs: $(MEMFSOBJS) rkernel entry.o entryother kernel.ld
 	$(info kernelmemfs:)
 	$(LD) $(LDFLAGS) -T kernel.ld -o $(OUTDIR)/kernelmemfs $(OUTDIR)/entry.o $(MEMFSOBJS) $(RUST_OS) -b binary $(OUTDIR)/entryother
-ifeq ($(DEBUG),true)
+ifeq ($(DUMP_ASM),true)
 	$(OBJDUMP) -S kernelmemfs > $(OUTDIR)/kernelmemfs.asm
 endif
 	$(OBJDUMP) -t kernelmemfs | sed '1,/SYMBOL TABLE/d; s/ .* / /; /^$$/d' > $(OUTDIR)/kernelmemfs.sym
