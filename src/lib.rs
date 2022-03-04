@@ -41,12 +41,18 @@ pub extern "C" fn rust_main() {
     console::clear_screen();
     println!("Welcome to Rust xV6!");
 
-    let x = 12;
+    /*unsafe {
+        let pointer = (0xFFFFFFFF) as *mut u32;
+        *pointer = 12;
+    }*/
+
+    let x: u32 = 12;
     println!("The value of x is {}", x);
-    println!("Testing vision by 0...");
-    unsafe {
-        asm!("mov dx, 0; div dx");
-    }
+
+      println!("Testing vision by 0...");
+      unsafe {
+          asm!("mov dx, 0; div dx");
+      }
 
     loop {}
 }

@@ -13,6 +13,8 @@ pub struct GateDescriptor {
   pointer_high: u16,
 }
 
+/// Entries used in the Interrupt Descriptor Table.
+/// These can be interrupt gates, trap gates, or task gates.
 impl GateDescriptor {
 
   pub fn missing(gate_type: SystemDescriptorTypes32) -> Self {
@@ -32,6 +34,9 @@ pub struct GateDescriptorOptions {
   bits: u8
 }
 
+/// # InterruptDescriptorTable
+/// Provides a table of Interrupt Server Routines used by the CPU.
+/// Entries are called Gates.
 pub struct Idt([GateDescriptor; 256]);
 
 impl Idt {
