@@ -37,6 +37,7 @@ impl AllocationNode {
 }
 
 /// Initialize the allocator using [page_round_up(end), 4MB].
+/// This is a maximum of 1024 4096 byte pages. As the code size grows, end also grows leaving less free pages.
 pub fn init(end: usize) {
   unsafe {
     FREE_PAGE_LIST.dealloc_range(end, memory_layout::map_physical_virtual(0x400000));
@@ -51,7 +52,6 @@ impl AllocationList {
     }
   }
 
-  // Add the 4MB page(really 256 4k pages) to the free list.
   /// Frees pages in the range of [page_round_up(start),end].
   /// Returns an option containing the address of the allocated page.
   /// # Arguments
