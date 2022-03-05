@@ -6,20 +6,21 @@
 use memory_layout;
 use mmu::{page_round_up, PAGE_SIZE};
 
-/// Stores a list of free pages.
-/// Removing a page from the FREE_PAGE_LIST allocates it.
-/// Adding a page to the FREE_PAGE_LIST deallocates it.
-/// Pages are stored using their virtual addresses.
-/// The AllocationNode is stored at the begging of the free page.
-static mut FREE_PAGE_LIST: AllocationList = AllocationList::new();
+/// The default allocator used by the kernel.
+pub static mut FREE_PAGE_LIST: AllocationList = AllocationList::new();
 
 #[repr(C)]
 struct AllocationNode {
   next: Option<&'static mut AllocationNode>
 }
 
+/// Stores a list of free pages.
+/// Removing a page allocates it.
+/// Adding a page deallocates it.
+/// Pages are stored using their virtual addresses.
+/// The AllocationNode is stored at the begging of the free page.
 #[repr(C)]
-struct AllocationList {
+pub struct AllocationList {
   head: AllocationNode
 }
 
