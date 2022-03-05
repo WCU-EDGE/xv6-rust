@@ -2,6 +2,7 @@
 
 #![feature(abi_x86_interrupt)]
 #![feature(format_args_nl)]
+#![feature(const_mut_refs)]
 
 #[macro_use]
 extern crate bitfield;
@@ -28,19 +29,25 @@ pub mod proc;
 pub mod trap;
 pub mod traps;
 pub mod types;
-mod kalloc;
+
+pub mod page_allocator;
 pub mod interrupts;
 mod memory_layout;
 
 use core::arch::asm;
 use core::panic::PanicInfo;
 
+/// The entry point into the xv6 rust kernel.
+/// Called from main.c.
+/// End is where the kernel ends, which c gets from the linker.
 #[no_mangle]
-pub extern "C" fn rust_main() {
+pub extern "C" fn rust_main(end: usize) {
     interrupts::init();
 
     console::clear_screen();
     println!("Welcome to Rust xV6!");
+
+    page_allocator::init(end);
 
     /*unsafe {
         let pointer = (0xFFFFFFFF) as *mut u32;

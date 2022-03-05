@@ -5,7 +5,7 @@
 #include "mmu.h"
 #include "x86.h"
 
-extern void rust_main(void);
+extern void rust_main(void*);
 extern pde_t *kpgdir;
 extern char end[]; // first address after kernel loaded from ELF file
 
@@ -13,7 +13,7 @@ extern char end[]; // first address after kernel loaded from ELF file
 // Allocate a real stack and switch to it, first
 // doing some setup required for memory allocator to work.
 int main(void) {
-  rust_main();
+  rust_main((void*) end);
 }
 
 pde_t entrypgdir[];  // For entry.S
