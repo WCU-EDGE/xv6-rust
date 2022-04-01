@@ -71,3 +71,16 @@ pub const fn page_round_up(address: usize) -> usize {
 pub const fn page_round_down(address: usize) -> usize {
     return address & !(PAGE_SIZE - 1)
 }
+
+/// Get the index of a virtual address's page directory entry in a page directory.
+pub const fn page_directory_index(virtual_address: usize) -> usize {
+    (virtual_address >> PAGE_DIRECTORY_INDEX_SHIFT) & 0x3FFusize
+}
+
+/// Get the index of a virtual address's page table entry in a page table.
+pub const fn page_table_index(virtual_address: usize) -> usize {
+    ((virtual_address >> PAGE_TABLE_INDEX_SHIFT) & 0x3FFusize)
+}
+
+pub const PAGE_DIRECTORY_INDEX_SHIFT: usize = 22; // offset of PDX in a linear address
+pub const PAGE_TABLE_INDEX_SHIFT: usize = 12; // offset of PDX in a linear address

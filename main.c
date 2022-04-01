@@ -5,15 +5,14 @@
 #include "mmu.h"
 #include "x86.h"
 
-extern void rust_main(void*);
+extern void rust_main();
 extern pde_t *kpgdir;
-extern char end[]; // first address after kernel loaded from ELF file
 
 // Bootstrap processor starts running C code here.
 // Allocate a real stack and switch to it, first
 // doing some setup required for memory allocator to work.
 int main(void) {
-  rust_main((void*) end);
+  rust_main();
 }
 
 pde_t entrypgdir[];  // For entry.S

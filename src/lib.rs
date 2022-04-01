@@ -25,7 +25,7 @@ pub mod sysproc;
 pub mod mmu;
 pub mod param;
 pub mod pipe;
-pub mod proc;
+pub mod process;
 pub mod trap;
 pub mod traps;
 pub mod types;
@@ -33,34 +33,37 @@ pub mod types;
 pub mod page_allocator;
 pub mod interrupts;
 mod memory_layout;
+mod virtual_memory;
 
 use core::arch::asm;
 use core::panic::PanicInfo;
+use process::user_init;
 
 /// The entry point into the xv6 rust kernel.
 /// Called from main.c.
 /// End is where the kernel ends, which c gets from the linker.
 #[no_mangle]
-pub extern "C" fn rust_main(end: usize) {
+pub extern "C" fn rust_main() {
     interrupts::init();
 
     console::clear_screen();
     println!("Welcome to Rust xV6!");
-
-    page_allocator::init(end);
+    page_allocator::init();
 
     /*unsafe {
         let pointer = (0xFFFFFFFF) as *mut u32;
         *pointer = 12;
     }*/
 
-    let x: u32 = 12;
+    /*let x: u32 = 12;
     println!("The value of x is {}", x);
 
       println!("Testing vision by 0...");
       unsafe {
           asm!("mov dx, 0; div dx");
-      }
+      }*/
+
+    user_init();
 
     loop {}
 }

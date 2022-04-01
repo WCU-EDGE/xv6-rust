@@ -1,5 +1,5 @@
 #[repr(C)]
-pub struct Trapframe {
+pub struct TrapFrame {
     edi: u32,
     esi: u32,
     ebp: u32,

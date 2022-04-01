@@ -1,12 +1,12 @@
 /// # Memory layout
 
 /// Start of extended memory
-const EXTENDED_MEMORY: usize = 0x100000;
+pub const EXTENDED_MEMORY: usize = 0x100000;
 
 /// Top physical memory
-const PHYSICAL_TOP: usize = 0xE000000;
+pub const PHYSICAL_TOP: usize = 0xE000000;
 /// Other devices are at high addresses
-const DEVICE_SPACE: usize = 0xFE000000;
+pub const DEVICE_SPACE: usize = 0xFE000000;
 
 /// Key addresses for address space layout (see kmap in vm.c for layout)
 /// First kernel virtual address

@@ -3,6 +3,8 @@
 //! The free memory is allocated from the end of the kernel to the end of physical memory.
 //! A linked list of free pages is used to keep track of allocations.
 
+use core::ops::Deref;
+use console::print;
 use memory_layout;
 use mmu::{page_round_up, PAGE_SIZE};
 
@@ -37,11 +39,15 @@ impl AllocationNode {
 
 }
 
+extern "C" {
+  static END_SYMBOL: usize;
+}
+
 /// Initialize the allocator using [page_round_up(end), 4MB].
 /// This is a maximum of 1024 4096 byte pages. As the code size grows, end also grows leaving less free pages.
-pub fn init(end: usize) {
+pub fn init() {
   unsafe {
-    FREE_PAGE_LIST.dealloc_range(end, memory_layout::map_physical_virtual(0x400000));
+    FREE_PAGE_LIST.dealloc_range(&END_SYMBOL as *const usize as usize, memory_layout::map_physical_virtual(0x400000));
   }
 }
 
@@ -73,17 +79,19 @@ impl AllocationList {
   /// Returns an option containing the address of the allocated page.
   /// # Arguments
   /// * 'address' - A page address returned from alloc_page.
-  pub unsafe fn alloc_page(&mut self) -> Option<usize> {
-    let cur = self.head.next.take();
-    match cur {
-      None => {
-        None
-      }
-      Some(page) => {
-        let ret = page.address();
-        self.head.next = page.next.take();
+  pub fn alloc_page(&mut self) -> Option<usize> {
+    unsafe {
+      let cur = self.head.next.take();
+      match cur {
+        None => {
+          None
+        }
+        Some(page) => {
+          let ret = page.address();
+          self.head.next = page.next.take();
 
-        Some(ret)
+          Some(ret)
+        }
       }
     }
   }

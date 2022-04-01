@@ -1,5 +1,5 @@
-use syscall::argint;
-use proc::{growproc, exit, kill, fork, sleep, wait, myproc};
+/*use syscall::argint;
+use process::{growproc, exit, kill, fork, sleep, wait, myproc};
 use trap::ticks;
 use x86::io::outw;
 
@@ -85,3 +85,4 @@ pub unsafe extern "C" fn sys_halt() -> i32 {
     outw(0x604, 0x0 | 0x2000);
     0
 }
+*/
