@@ -3,7 +3,6 @@
 
 use core::fmt;
 use console::{BACKSCHAR, BACKSPACE, console_interrupt};
-use lapic::microdelay;
 use x86::io::{inb, outb};
 
 const COM1: u16 = 0x3f8;
@@ -110,11 +109,16 @@ pub fn uart_put_char(c: i32) {
                 break;
             }
 
-            microdelay(10);
+            micro_delay(10);
         }
 
         outb(COM1+0, c as u8);
     }
+}
+
+// On real hardware would want to tune this dynamically.
+fn micro_delay(us: u32)
+{
 }
 
 pub fn uart_get_char() -> i32 {

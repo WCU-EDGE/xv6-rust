@@ -11,7 +11,7 @@ use core::ptr::null_mut;
 use x86::bits32::paging::PD;
 use arch::TrapFrame;
 use console::print;
-use mmu::PAGE_SIZE;
+use mmu::{PAGE_SIZE, SegDesc, TaskState};
 use page_allocator::FREE_PAGE_LIST;
 use param::KERNEL_STACK_SIZE;
 use virtual_memory::{setup_kernel_virtual_memory};
@@ -40,10 +40,25 @@ pub struct Cpu {
     scheduler: *const Context,
     ts: mmu::TaskState,
     gdt: [mmu::SegDesc<u32>; param::NSEGS],
-    started: u32,
+    started: bool,
     ncli: i32,
     intena: i32,
     proc: *const Process,
+}
+
+impl Cpu {
+    pub const fn new() -> Cpu {
+        Cpu {
+            apicid: 0,
+            scheduler: 0 as *const Context,
+            ts: TaskState::new(),
+            gdt: [SegDesc(0u32); param::NSEGS],
+            started: false,
+            ncli: 0,
+            intena: 0,
+            proc: 0 as *const Process
+        }
+    }
 }
 
 #[derive(Copy, Clone)]

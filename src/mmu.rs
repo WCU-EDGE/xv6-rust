@@ -41,8 +41,53 @@ pub struct TaskState {
     iomb: u16,
 }
 
+impl TaskState {
+    pub const fn new() -> TaskState {
+        TaskState {
+            link: 0,
+            esp0: 0,
+            ss0: 0,
+            padding1: 0,
+            esp1: 0 as *const u32,
+            ss1: 0,
+            padding2: 0,
+            esp2: 0 as *const u32,
+            ss2: 0,
+            padding3: 0,
+            cr3: 0 as *const ffi::c_void,
+            eip: 0 as *const u32,
+            eflags: 0,
+            eax: 0,
+            ecx: 0,
+            edx: 0,
+            ebx: 0,
+            esp: 0 as *const u32,
+            ebp: 0 as *const u32,
+            esi: 0,
+            edi: 0,
+            es: 0,
+            padding4: 0,
+            cs: 0,
+            padding5: 0,
+            ss: 0,
+            padding6: 0,
+            ds: 0,
+            padding7: 0,
+            fs: 0,
+            padding8: 0,
+            gs: 0,
+            padding9: 0,
+            ldt: 0,
+            padding10: 0,
+            t: 0,
+            iomb: 0
+        }
+    }
+}
+
 bitfield!{
     #[repr(C)]
+    #[derive(Copy, Clone)]
     pub struct SegDesc(MSB0 [u8]);
     u32;
     get_lim_15_0, _: 15, 0;

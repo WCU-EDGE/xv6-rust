@@ -17,7 +17,7 @@ pub mod console;
 pub mod file;
 pub mod fs;
 pub mod ioapic;
-pub mod lapic;
+pub mod interrupt_controller;
 pub mod kbd;
 pub mod string;
 pub mod syscall;
@@ -34,6 +34,8 @@ pub mod page_allocator;
 pub mod interrupts;
 mod memory_layout;
 mod virtual_memory;
+mod ide;
+mod multi_processor;
 
 use core::arch::asm;
 use core::panic::PanicInfo;
@@ -49,6 +51,10 @@ pub extern "C" fn rust_main() {
     console::clear_screen();
     println!("Welcome to Rust xV6!");
     page_allocator::init();
+
+    unsafe {
+        interrupt_controller::init();
+    }
 
     /*unsafe {
         let pointer = (0xFFFFFFFF) as *mut u32;
