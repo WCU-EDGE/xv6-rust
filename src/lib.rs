@@ -36,10 +36,12 @@ mod memory_layout;
 mod virtual_memory;
 mod ide;
 mod multi_processor;
+mod local_interrupt_controller;
 
 use core::arch::asm;
 use core::panic::PanicInfo;
 use process::user_init;
+use virtual_memory::kmalloc;
 
 /// The entry point into the xv6 rust kernel.
 /// Called from main.c.
@@ -53,6 +55,8 @@ pub extern "C" fn rust_main() {
     page_allocator::init();
 
     unsafe {
+        //kmalloc();
+        multi_processor::init();
         interrupt_controller::init();
     }
 
@@ -69,7 +73,7 @@ pub extern "C" fn rust_main() {
           asm!("mov dx, 0; div dx");
       }*/
 
-    user_init();
+    //user_init();
 
     loop {}
 }

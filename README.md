@@ -37,4 +37,5 @@ Debugging:
 
 1. Run `make debug`; QEMU will expose a debugging port for GDB to attach to.
 
-1. In another terminal session, run `rust-gdb`.
+2. In another terminal session, run `rust-gdb target/kernel/kernel`.
+3. In rust-gdb run `target remote localhost:1234`

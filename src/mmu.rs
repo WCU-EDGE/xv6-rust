@@ -1,6 +1,7 @@
 use core::ffi;
 
 #[repr(C)]
+#[derive(Copy, Clone)]
 pub struct TaskState {
     link: u32,
     esp0: u32,

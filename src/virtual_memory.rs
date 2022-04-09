@@ -1,9 +1,9 @@
-use core::ffi::c_void;
+use core::arch::asm;
 use core::slice;
 use x86::bits32::paging::{PAddr, PD, PDEntry, PDFlags, PT, PTEntry, PTFlags};
-use x86::task::tr;
+use x86::controlregs::cr3_write;
 use ::{memory_layout, mmu};
-use memory_layout::{DEVICE_SPACE, EXTENDED_MEMORY, KERNEL_BASE, KERNEL_LINK, PHYSICAL_TOP};
+use memory_layout::{DEVICE_SPACE, EXTENDED_MEMORY, KERNEL_BASE, KERNEL_LINK, map_virtual_to_physical, PHYSICAL_TOP};
 use mmu::PAGE_SIZE;
 use page_allocator::FREE_PAGE_LIST;
 
@@ -168,4 +168,20 @@ fn init_user_virtual_memory(page_directory: &mut PD, init_code: usize, size: usi
     let init = slice::from_raw_parts_mut(init_code as *mut u8, size);
     mem.copy_from_slice(init);
   }
+}
+
+static mut kernel_page_directory: *mut PD = 0 as *mut PD;
+
+/// Allocate one page table for the machine for the kernel address space for scheduler processes.
+pub unsafe fn kmalloc() {
+  kernel_page_directory = setup_kernel_virtual_memory().expect("No kernel page table");
+  switchkvm();
+}
+
+
+// Switch h/w page table register to the kernel-only page table, for when no process is running.
+unsafe fn switchkvm()  {
+  let x = map_virtual_to_physical(kernel_page_directory as usize);
+  asm!("mov {0}, %cr3", in(reg) x as usize, options(att_syntax));
+  println!("kv");
 }

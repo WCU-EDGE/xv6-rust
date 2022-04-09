@@ -187,12 +187,6 @@ clean:
 	rm -r -f $(OUTDIR)
 	$(CARGO) clean
 
-# try to generate a unique GDB port
-GDBPORT = $(shell expr `id -u` % 5000 + 25000)
-# QEMU's gdb stub command line changed in 0.11
-QEMUGDB = $(shell if $(QEMU) -help | grep -q '^-gdb'; \
-	then echo "-gdb tcp::$(GDBPORT)"; \
-	else echo "-s -p $(GDBPORT)"; fi)
 ifndef CPUS
 CPUS := 2
 endif
@@ -222,16 +216,14 @@ qemu-nox: xv6.img
 	$(info qemu-nox:)
 	$(QEMU) -nographic $(QEMUOPTS)
 
-.gdbinit: .gdbinit.tmpl
-	$(info gdbinit:)
-	sed "s/localhost:1234/localhost:$(GDBPORT)/" < $^ > $@
-
-qemu-gdb: xv6.img .gdbinit
+qemu-gdb: xv6.img
 	$(info qemu-gdb:)
-	@echo "*** Now run 'gdb'." 1>&2
-	$(QEMU) -serial mon:stdio $(QEMUOPTS) -S $(QEMUGDB)
+	@echo "Run rust-gdb target/kernel/kernel" 1>&2
+	@echo "In rust-gdb run target remote localhost:1234" 1>&2
+	$(QEMU) $(QEMUOPTS) -s -S
 
-qemu-nox-gdb: xv6.img .gdbinit
+qemu-nox-gdb: xv6.img
 	$(info qemu-nox-gdb:)
-	@echo "*** Now run 'gdb'." 1>&2
-	$(QEMU) -nographic $(QEMUOPTS) -S $(QEMUGDB)
+	@echo "Run rust-gdb target/kernel/kernel" 1>&2
+	@echo "In rust-gdb run target remote localhost:1234" 1>&2
+	$(QEMU) -nographic $(QEMUOPTS) -s -S

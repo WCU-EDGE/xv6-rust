@@ -2,6 +2,8 @@
 // https://pdos.csail.mit.edu/6.828/2018/readings/ia32/ioapic.pdf
 // See also picirq.c.
 
+use local_interrupt_controller::LOCAL_INTERRUPT_CONTROLLER;
+use multi_processor::INTERRUPT_CONTROLLER_ID;
 use traps::T_IRQ0;
 
 // Default physical address of IO APIC
@@ -32,8 +34,8 @@ pub const INT_LOGICAL: i32 = 0x00000800;
 // InputOutputAdvancedInterruptController
 
 
-const INTERRUPT_CONTROLLER_REGISTER: *mut u32 = 0xFEC00000 as *mut u32;
-const INTERRUPT_CONTROLLER_DATA: *mut u32 = 0xFEC00060 as *mut u32;
+const INTERRUPT_CONTROLLER_REGISTER: *mut u32 = 0xFE_C0_00_00 as *mut u32;
+const INTERRUPT_CONTROLLER_DATA: *mut u32 = 0xFE_C0_00_10 as *mut u32;
 
 unsafe fn write(register: u32, data: u32) {
   INTERRUPT_CONTROLLER_REGISTER.write_volatile(register);
@@ -46,16 +48,17 @@ unsafe fn read(register: u32) -> u32 {
 }
 
 pub unsafe fn init() {
-  let mut max_interrupt = (read(VERSION_REGISTER) >> 16) & 0xFF;
+  let max_interrupt = (read(VERSION_REGISTER) >> 16) & 0xFF;
   let id = read(ID_REGISTER) >> 24;
-  if id != INTERRUPT_CONTROLLER_REGISTER as u32 {
+  if id != INTERRUPT_CONTROLLER_ID as u32 { // look here
     println!("interrupt_controller::init: id isn't equal to INTERRUPT_CONTROLLER_REGISTER; not a MP");
+  }
 
-    // Mark all interrupts edge-triggered, active high, disabled,
-    // and not routed to any CPUs.
-    for i in 0..max_interrupt {
-      write(TABLE_REGISTER + 2 * i, INTERRUPT_DISABLED | (T_IRQ0 + i));
-    }
+  // Mark all interrupts edge-triggered, active high, disabled,
+  // and not routed to any CPUs.
+  for i in 0..=max_interrupt {
+    write(TABLE_REGISTER + 2 * i, INTERRUPT_DISABLED | (T_IRQ0 + i));
+    write(TABLE_REGISTER + 2 * i + 1, 0);
   }
 }
 

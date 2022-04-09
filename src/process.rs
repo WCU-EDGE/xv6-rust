@@ -35,8 +35,9 @@ lazy_static! {
     pub static ref PROCESS_TABLE : spin::Mutex<[Option<Process>; 24]> = spin::Mutex::new([Option::None; 24]);
 }
 
+#[derive(Copy, Clone)]
 pub struct Cpu {
-    apicid: u8,
+    pub(crate) apicid: u8,
     scheduler: *const Context,
     ts: mmu::TaskState,
     gdt: [mmu::SegDesc<u32>; param::NSEGS],
