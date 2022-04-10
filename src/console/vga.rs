@@ -1,6 +1,7 @@
 use core::cmp::min;
 use core::fmt;
 use core::ptr::{read_volatile, write_volatile};
+use memory_layout::map_physical_virtual;
 
 #[allow(dead_code)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -57,6 +58,10 @@ pub struct VgaWriter {
 }
 
 impl VgaWriter {
+
+  pub fn switch_to_virtual_memory(&mut self) {
+    self.buffer = unsafe { &mut *(map_physical_virtual(0xb8000) as *mut Buffer) }
+  }
 
   pub fn new() -> Self {
     VgaWriter {

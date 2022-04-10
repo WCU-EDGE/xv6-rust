@@ -48,4 +48,8 @@ pub fn print(args: fmt::Arguments) {
   VGA_CONSOLE.lock().write_fmt(args).unwrap();
 }
 
+pub fn switch_to_virtual_memory() {
+  VGA_CONSOLE.lock().switch_to_virtual_memory();
+}
+
 pub fn console_interrupt(c: fn() -> i32) {}

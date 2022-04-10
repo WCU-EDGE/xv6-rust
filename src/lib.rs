@@ -55,25 +55,14 @@ pub extern "C" fn rust_main() {
     page_allocator::init();
 
     unsafe {
-        //kmalloc();
+        kmalloc();
         multi_processor::init();
-        interrupt_controller::init();
+
+        // Todo: fix.
+        // interrupt_controller::init();
     }
 
-    /*unsafe {
-        let pointer = (0xFFFFFFFF) as *mut u32;
-        *pointer = 12;
-    }*/
-
-    /*let x: u32 = 12;
-    println!("The value of x is {}", x);
-
-      println!("Testing vision by 0...");
-      unsafe {
-          asm!("mov dx, 0; div dx");
-      }*/
-
-    //user_init();
+    user_init();
 
     loop {}
 }

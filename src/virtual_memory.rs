@@ -3,12 +3,14 @@ use core::slice;
 use x86::bits32::paging::{PAddr, PD, PDEntry, PDFlags, PT, PTEntry, PTFlags};
 use x86::controlregs::cr3_write;
 use ::{memory_layout, mmu};
+use console;
+use console::print;
 use memory_layout::{DEVICE_SPACE, EXTENDED_MEMORY, KERNEL_BASE, KERNEL_LINK, map_virtual_to_physical, PHYSICAL_TOP};
 use mmu::PAGE_SIZE;
 use page_allocator::FREE_PAGE_LIST;
 
 struct KernelMap {
-  virtual_adress: usize,
+  virtual_address: usize,
   phys_start: usize,
   phys_end: usize,
   perm: PTFlags
@@ -22,12 +24,11 @@ extern {
 pub fn setup_kernel_virtual_memory() -> Option<&'static mut PD> {
   let tmp: usize = unsafe { &data as *const usize as usize };
   let map: [KernelMap; 4] = [
-    KernelMap {virtual_adress: KERNEL_BASE, phys_start: 0, phys_end: EXTENDED_MEMORY, perm: PTFlags::RW},
-    KernelMap {virtual_adress: KERNEL_LINK, phys_start: 0, phys_end: EXTENDED_MEMORY, perm: PTFlags::RW},
-    KernelMap {virtual_adress: tmp, phys_start: 0, phys_end: EXTENDED_MEMORY, perm: PTFlags::RW},
-    KernelMap {virtual_adress: DEVICE_SPACE, phys_start: 0, phys_end: EXTENDED_MEMORY, perm: PTFlags::RW},
+    KernelMap {virtual_address: KERNEL_BASE, phys_start: 0, phys_end: EXTENDED_MEMORY, perm: PTFlags::RW},
+    KernelMap {virtual_address: KERNEL_LINK, phys_start: map_virtual_to_physical(KERNEL_LINK), phys_end: map_virtual_to_physical(tmp), perm: PTFlags::empty()},
+    KernelMap {virtual_address: tmp, phys_start: map_virtual_to_physical(tmp), phys_end: PHYSICAL_TOP, perm: PTFlags::RW},
+    KernelMap {virtual_address: DEVICE_SPACE, phys_start: DEVICE_SPACE, phys_end: DEVICE_SPACE+4096, perm: PTFlags::RW},
   ];
-
 
   let page_location = unsafe {FREE_PAGE_LIST.alloc_page()};
   if page_location.is_none() {
@@ -47,12 +48,14 @@ pub fn setup_kernel_virtual_memory() -> Option<&'static mut PD> {
   }
 
   for mapping in map {
-    let map_result = map_pages(page_directory, mapping.virtual_adress, mapping.phys_end - mapping.phys_start,
+    let sz = mapping.phys_end.overflowing_sub(mapping.phys_start).0;
+    let map_result = map_pages(page_directory, mapping.virtual_address, sz,
                                mapping.phys_start, mapping.perm);
     if map_result == false {
       free_virtual_memory(page_directory);
       return None;
     }
+
   }
 
   Some(page_directory)
@@ -64,21 +67,25 @@ fn map_pages(page_directory: &mut PD, virtual_address: usize, size: usize, physi
   let mut physical_address = physical_address;
   let last: usize;
 
+  if physical_address == DEVICE_SPACE {
+    let x = 12;
+  }
+
   address = mmu::page_round_down(virtual_address);
-  last = mmu::page_round_down(virtual_address + size - 1);
+  last = mmu::page_round_down(virtual_address.overflowing_add(size).0.overflowing_sub(1).0);
   loop {
+    //println!("a");
     match walk_page_directory(page_directory, address, true) {
       Some(page_table_entry) => {
         if page_table_entry.is_present() {
           panic!("Remap!");
         }
-
-        *page_table_entry = PTEntry::new(PAddr::from(physical_address), PTFlags::P | permissions);
+          *page_table_entry = PTEntry::new(PAddr::from(physical_address), PTFlags::P | permissions);
         if address == last {
-          break;
+          return true;
         } else {
-          address += PAGE_SIZE;
-          physical_address += PAGE_SIZE;
+          address = address.overflowing_add(PAGE_SIZE).0;
+          physical_address = physical_address.overflowing_add(PAGE_SIZE).0;
         }
       }
       None => {
@@ -173,15 +180,17 @@ fn init_user_virtual_memory(page_directory: &mut PD, init_code: usize, size: usi
 static mut kernel_page_directory: *mut PD = 0 as *mut PD;
 
 /// Allocate one page table for the machine for the kernel address space for scheduler processes.
+/// After this call all kernel code and peripherals will be mapped to higher memory.
 pub unsafe fn kmalloc() {
   kernel_page_directory = setup_kernel_virtual_memory().expect("No kernel page table");
   switchkvm();
+  console::switch_to_virtual_memory();
+  println!("Kernel memory allocated. Mapped to higher address space.")
 }
 
 
 // Switch h/w page table register to the kernel-only page table, for when no process is running.
 unsafe fn switchkvm()  {
-  let x = map_virtual_to_physical(kernel_page_directory as usize);
-  asm!("mov {0}, %cr3", in(reg) x as usize, options(att_syntax));
-  println!("kv");
+  let page_directory_address = map_virtual_to_physical(kernel_page_directory as usize);
+  asm!("mov {0}, %cr3", in(reg) page_directory_address as usize, options(att_syntax));
 }
