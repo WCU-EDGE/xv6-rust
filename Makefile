@@ -108,10 +108,6 @@ endif
 	$(OBJCOPY) -S -O binary -j .text $(OUTDIR)/bootblock.o $(OUTDIR)/bootblock
 	./sign.pl $(OUTDIR)/bootblock
 
-main.o: main.c
-	$(info main.o:)
-	$(CC) $(CFLAGS) -c -o $(OUTDIR)/main.o main.c
-
 entry.o: entry.S
 	$(info entry.o:)
 	$(CC) $(ASFLAGS) -c -o $(OUTDIR)/entry.o entry.S
@@ -125,9 +121,9 @@ ifeq ($(DUMP_ASM),true)
 	$(OBJDUMP) -S $(OUTDIR)/bootblockother.o > $(OUTDIR)/entryother.asm
 endif
 
-kernel: rkernel main.o entry.o entryother kernel.ld
+kernel: rkernel entry.o entryother kernel.ld
 	$(info kernel:)
-	$(LD) $(LDFLAGS) -T kernel.ld -o $(OUTDIR)/kernel $(OUTDIR)/entry.o $(OUTDIR)/main.o $(RUST_OS) -b binary $(OUTDIR)/entryother
+	$(LD) $(LDFLAGS) -T kernel.ld -o $(OUTDIR)/kernel $(OUTDIR)/entry.o $(RUST_OS) -b binary $(OUTDIR)/entryother
 ifeq ($(DUMP_ASM),true)
 	$(OBJDUMP) -S $(OUTDIR)/kernel > $(OUTDIR)/kernel.asm
 	$(OBJDUMP) -t kernel | sed '1,/SYMBOL TABLE/d; s/ .* / /; /^$$/d' > $(OUTDIR)/kernel.sym
@@ -155,7 +151,7 @@ docs-open:
 # exploring disk buffering implementations, but it is
 # great for testing the kernel on real hardware without
 # needing a scratch disk.
-MEMFSOBJS = $(filter-out ide.o,main.o) memide.o
+MEMFSOBJS = $(filter-out ide.o,) memide.o
 kernelmemfs: $(MEMFSOBJS) rkernel entry.o entryother kernel.ld
 	$(info kernelmemfs:)
 	$(LD) $(LDFLAGS) -T kernel.ld -o $(OUTDIR)/kernelmemfs $(OUTDIR)/entry.o $(MEMFSOBJS) $(RUST_OS) -b binary $(OUTDIR)/entryother
@@ -164,7 +160,7 @@ ifeq ($(DUMP_ASM),true)
 endif
 	$(OBJDUMP) -t kernelmemfs | sed '1,/SYMBOL TABLE/d; s/ .* / /; /^$$/d' > $(OUTDIR)/kernelmemfs.sym
 
-tags: main.o entryother.S
+tags: entryother.S
 	$(info tags:)
 	etags *.S *.c
 

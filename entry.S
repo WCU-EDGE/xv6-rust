@@ -48,7 +48,7 @@ entry:
   orl     $(CR4_PSE), %eax
   movl    %eax, %cr4
   # Set page directory
-  movl    $(V2P_WO(entrypgdir)), %eax
+  movl    $(V2P_WO(DEFAULT_PAGE_DIRECTORY)), %eax
   movl    %eax, %cr3
   # Turn on paging.
   movl    %cr0, %eax
@@ -62,7 +62,7 @@ entry:
   # high addresses. The indirect call is needed because
   # the assembler produces a PC-relative instruction
   # for a direct jump.
-  mov $main, %eax
+  mov $rust_main, %eax
   jmp *%eax
 
 .comm stack, KERNEL_STACK_SIZE
