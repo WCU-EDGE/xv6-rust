@@ -1,5 +1,4 @@
 #include "asm.h"
-#include "memlayout.h"
 #include "mmu.h"
 	
 # Each non-boot CPU ("AP") is started up in response to a STARTUP

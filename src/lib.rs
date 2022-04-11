@@ -94,4 +94,3 @@ const fn default_page_directory() -> PD1 {
 
 #[no_mangle]
 pub static DEFAULT_PAGE_DIRECTORY : PD1 = default_page_directory();
-

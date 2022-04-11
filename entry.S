@@ -19,9 +19,11 @@
 # }
 
 #include "asm.h"
-#include "memlayout.h"
 #include "mmu.h"
-#include "param.h"
+
+// TODO: Replace
+#define KERNBASE 0x80000000         // First kernel virtual address
+#define V2P_WO(x) ((x) - KERNBASE)    // same as V2P, but without casts
 
 # Multiboot header.  Data to direct multiboot loader.
 .p2align 2
@@ -56,7 +58,8 @@ entry:
   movl    %eax, %cr0
 
   # Set up the stack pointer.
-  movl $(stack + KERNEL_STACK_SIZE), %esp
+  //movl $(stack + KERNEL_STACK_SIZE), %esp
+  movl $(stack + 16384), %esp
 
   # Jump to main(), and switch to executing at
   # high addresses. The indirect call is needed because
@@ -65,4 +68,5 @@ entry:
   mov $rust_main, %eax
   jmp *%eax
 
-.comm stack, KERNEL_STACK_SIZE
+//.comm stack, KERNEL_STACK_SIZE
+.comm stack, 16384

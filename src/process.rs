@@ -13,7 +13,6 @@ use arch::TrapFrame;
 use console::print;
 use mmu::{PAGE_SIZE, SegDesc, TaskState};
 use page_allocator::FREE_PAGE_LIST;
-use param::KERNEL_STACK_SIZE;
 use virtual_memory::{setup_kernel_virtual_memory};
 
 static mut PROCESS_ID: usize = 0;
