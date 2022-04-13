@@ -1,3 +1,5 @@
+//! See the [multi processor specification](https://pdos.csail.mit.edu/6.828/2008/readings/ia32/MPspec.pdf) for details.
+
 use core::mem;
 use core::mem::{MaybeUninit, size_of};
 use core::ptr::{slice_from_raw_parts, slice_from_raw_parts_mut};
