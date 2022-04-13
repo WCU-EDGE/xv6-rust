@@ -60,6 +60,10 @@ pub extern "C" fn rust_main() {
     unsafe {
         kmalloc();
         multi_processor::init();
+        println!("MP configured.");
+
+        // Todo: fix.
+        //local_interrupt_controller::init();
 
         // Todo: fix.
         // interrupt_controller::init();
@@ -87,7 +91,7 @@ const fn default_page_directory() -> PD1 {
     let mut default_page_directory: PD1 = PD1([PDEntry(0); PAGE_SIZE_ENTRIES]);
 
     default_page_directory.0[0] = PDEntry((0 & ADDRESS_MASK_PSE) | (PDE_RW | PDE_P | PDE_PS));
-    default_page_directory.0[KERNEL_BASE >> PAGE_DIRECTORY_INDEX_SHIFT] = PDEntry((0 & (!0x3fffff)) | (PDE_RW | PDE_P | PDE_PS));
+    default_page_directory.0[KERNEL_BASE >> PAGE_DIRECTORY_INDEX_SHIFT] = PDEntry((0 & ADDRESS_MASK_PSE) | (PDE_RW | PDE_P | PDE_PS));
 
     default_page_directory
 }
