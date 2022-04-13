@@ -140,7 +140,6 @@ unsafe fn search1(address: usize, length: usize) -> Option<*mut MultiProcessor> 
 unsafe fn search() -> Option<*mut MultiProcessor> {
  let bda: *mut u8 = map_physical_virtual(0x400) as *mut u8;
   let mut p: u32;
-  let mp: *mut MultiProcessor;
 
   p = ((*bda.add(0x0F) as u32) << 8) | (*bda.add(0x0E) as u32) << 4;
   //(p = ((bda[0x0F]<<8)| bda[0x0E]) << 4)
@@ -224,7 +223,7 @@ const MPIOAPIC: u8 = 2;  // One per processor
 const MPIOINTR: u8 = 3;  // One per processor
 const MPLINTR: u8 = 4;  // One per processor
 
-static mut ncpus: u8 = 0;
+static mut N_CPUS: u8 = 0;
 
 pub(crate) unsafe fn init() {
   let mut p: *mut u8;
@@ -252,9 +251,9 @@ pub(crate) unsafe fn init() {
     match *p {
       MPPROC => {
         processor_table_entry = p as *mut ProcessorTableEntry;
-        if ncpus < MAX_CPUS as u8 {
-          CPUS[ncpus as usize].apicid = (*processor_table_entry).apic_id;
-          ncpus += 1;
+        if N_CPUS < MAX_CPUS as u8 {
+          CPUS[N_CPUS as usize].apicid = (*processor_table_entry).apic_id;
+          N_CPUS += 1;
         }
         p = p.add(size_of::<ProcessorTableEntry>());
       },
