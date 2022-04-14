@@ -27,7 +27,7 @@ pub fn setup_kernel_virtual_memory() -> Option<&'static mut PD> {
     KernelMap {virtual_address: KERNEL_BASE, phys_start: 0, phys_end: EXTENDED_MEMORY, perm: PTFlags::RW},
     KernelMap {virtual_address: KERNEL_LINK, phys_start: map_virtual_to_physical(KERNEL_LINK), phys_end: map_virtual_to_physical(tmp), perm: PTFlags::empty()},
     KernelMap {virtual_address: tmp, phys_start: map_virtual_to_physical(tmp), phys_end: PHYSICAL_TOP, perm: PTFlags::RW},
-    KernelMap {virtual_address: DEVICE_SPACE, phys_start: DEVICE_SPACE, phys_end: DEVICE_SPACE+4096, perm: PTFlags::RW},
+    KernelMap {virtual_address: DEVICE_SPACE, phys_start: DEVICE_SPACE, phys_end: 0, perm: PTFlags::RW},
   ];
 
   let page_location = unsafe {FREE_PAGE_LIST.alloc_page()};

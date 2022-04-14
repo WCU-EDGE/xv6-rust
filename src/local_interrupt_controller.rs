@@ -1,3 +1,4 @@
+use memory_layout::map_physical_virtual;
 use traps::{IRQ_ERROR, IRQ_SPURIOUS, IRQ_TIMER, T_IRQ0};
 
 pub static mut LOCAL_INTERRUPT_CONTROLLER: *mut u32 = 0 as *mut u32;
@@ -28,11 +29,13 @@ const INIT: u32 = 0x00000500;
 const LEVEL: u32 = 0x00008000;
 
 pub unsafe fn init() {
-  if LOCAL_INTERRUPT_CONTROLLER.is_null() {
+/*  if LOCAL_INTERRUPT_CONTROLLER.is_null() {
+    println!("Local interrupt controller is undefined.");
     return;
-  }
-
+  }*/
+  //LOCAL_INTERRUPT_CONTROLLER = map_physical_virtual(LOCAL_INTERRUPT_CONTROLLER as usize) as *mut u32;
   // Enable local APIC; set spurious interrupt vector.
+
   write(SVR, ENABLE | (T_IRQ0 + IRQ_SPURIOUS));
 
   // The timer repeatedly counts down at bus frequency
@@ -49,6 +52,7 @@ pub unsafe fn init() {
 
   // Disable performance counter overflow interrupts
   // on machines that provide that interrupt entry.
+  // TODO: Fix offsets.
   let version = LOCAL_INTERRUPT_CONTROLLER.offset(VERSION as isize).read_volatile();
   if ((version >> 16) & 0xFF) >= 4 {
     write(PCINT, MASKED);
@@ -76,7 +80,8 @@ pub unsafe fn init() {
   println!("local interrupt controller enabled.");
 }
 
-unsafe fn write(index: u32, value: u32) {
-  LOCAL_INTERRUPT_CONTROLLER.offset(index as isize).write_volatile(value);
-  LOCAL_INTERRUPT_CONTROLLER.offset(ID as isize).read_volatile();
+unsafe fn write(register: u32, value: u32) {
+  (((LOCAL_INTERRUPT_CONTROLLER as usize).overflowing_add(register as usize).0) as *mut u32).write_volatile(value);
+  // Wait for write to finish, by reading
+  (((LOCAL_INTERRUPT_CONTROLLER as usize).overflowing_add(ID as usize).0) as *mut u32).read_volatile();
 }

@@ -63,19 +63,20 @@ pub extern "C" fn rust_main() {
         println!("MP configured.");
 
         // Todo: fix.
-        //local_interrupt_controller::init();
+        local_interrupt_controller::init();
 
         // Todo: fix.
         // interrupt_controller::init();
     }
 
-    user_init();
+    //user_init();
 
     loop {}
 }
 
 #[panic_handler]
-fn panic(_info: &PanicInfo) -> ! {
+fn panic(info: &PanicInfo) -> ! {
+    println!("{}", info);
     loop {}
 }
 

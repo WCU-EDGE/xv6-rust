@@ -21,5 +21,5 @@ pub const fn map_virtual_to_physical(address: usize) -> usize {
 
 /// Maps a physical address to a virtual address.
 pub const fn map_physical_virtual(address: usize) -> usize {
-  address + KERNEL_BASE
+  address.overflowing_add(KERNEL_BASE).0
 }
