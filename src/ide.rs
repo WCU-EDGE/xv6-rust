@@ -1,6 +1,6 @@
 use x86::io::{inb, outb};
+use acpi::MAX_CPUS;
 use interrupt_controller;
-use multi_processor::MAX_CPUS;
 use traps::IRQ_IDE;
 
 pub const SECTOR_SIZE: u16 = 512;

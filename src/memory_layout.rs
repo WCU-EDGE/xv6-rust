@@ -16,7 +16,7 @@ pub const KERNEL_LINK: usize = KERNEL_BASE + EXTENDED_MEMORY;
 
 /// Maps a virtual address to a physical address.
 pub const fn map_virtual_to_physical(address: usize) -> usize {
-  address - KERNEL_BASE
+  address.overflowing_sub(KERNEL_BASE).0
 }
 
 /// Maps a physical address to a virtual address.

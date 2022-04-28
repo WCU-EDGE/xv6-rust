@@ -2,8 +2,8 @@
 // https://pdos.csail.mit.edu/6.828/2018/readings/ia32/ioapic.pdf
 // See also picirq.c.
 
+use acpi::INTERRUPT_CONTROLLER_ID;
 use local_interrupt_controller::LOCAL_INTERRUPT_CONTROLLER;
-use multi_processor::INTERRUPT_CONTROLLER_ID;
 use traps::T_IRQ0;
 
 // Default physical address of IO APIC

@@ -35,12 +35,13 @@ pub mod interrupts;
 mod memory_layout;
 mod virtual_memory;
 mod ide;
-mod multi_processor;
 mod local_interrupt_controller;
+mod acpi;
 
 use core::arch::asm;
 use core::panic::PanicInfo;
 use x86::bits32::paging::{PAGE_SIZE_ENTRIES, PD, PDEntry};
+use acpi::ACPI2;
 use memory_layout::KERNEL_BASE;
 use mmu::PAGE_DIRECTORY_INDEX_SHIFT;
 use process::user_init;
@@ -55,18 +56,22 @@ pub extern "C" fn rust_main() {
 
     console::clear_screen();
     println!("Welcome to Rust xV6!");
+
+    ACPI2.lock().populate_cpu_info();
+
     page_allocator::init();
 
     unsafe {
         kmalloc();
-        multi_processor::init();
-        println!("MP configured.");
+        //multi_processor::init();
+        //ACPI2.lock().populate_cpu_info();
+        //println!("MP configured.");
 
         // Todo: fix.
         local_interrupt_controller::init();
 
         // Todo: fix.
-        // interrupt_controller::init();
+        interrupt_controller::init();
     }
 
     //user_init();
@@ -91,7 +96,11 @@ const fn default_page_directory() -> PD1 {
 
     let mut default_page_directory: PD1 = PD1([PDEntry(0); PAGE_SIZE_ENTRIES]);
 
-    default_page_directory.0[0] = PDEntry((0 & ADDRESS_MASK_PSE) | (PDE_RW | PDE_P | PDE_PS));
+    let mut i: u32 = 0;
+    while i < 256 {
+        default_page_directory.0[i as usize] = PDEntry(((i * 4194304) & ADDRESS_MASK_PSE) | (PDE_RW | PDE_P | PDE_PS));
+        i += 1;
+    }
     default_page_directory.0[KERNEL_BASE >> PAGE_DIRECTORY_INDEX_SHIFT] = PDEntry((0 & ADDRESS_MASK_PSE) | (PDE_RW | PDE_P | PDE_PS));
 
     default_page_directory

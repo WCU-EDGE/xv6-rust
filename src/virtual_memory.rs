@@ -6,7 +6,7 @@ use ::{memory_layout, mmu};
 use console;
 use console::print;
 use memory_layout::{DEVICE_SPACE, EXTENDED_MEMORY, KERNEL_BASE, KERNEL_LINK, map_virtual_to_physical, PHYSICAL_TOP};
-use mmu::PAGE_SIZE;
+use mmu::{page_round_up, PAGE_SIZE};
 use page_allocator::FREE_PAGE_LIST;
 
 struct KernelMap {
@@ -48,6 +48,7 @@ pub fn setup_kernel_virtual_memory() -> Option<&'static mut PD> {
   }
 
   for mapping in map {
+    //println!("[{:x},{:x}]", mapping.phys_start, mapping.phys_end);
     let sz = mapping.phys_end.overflowing_sub(mapping.phys_start).0;
     let map_result = map_pages(page_directory, mapping.virtual_address, sz,
                                mapping.phys_start, mapping.perm);
@@ -63,18 +64,11 @@ pub fn setup_kernel_virtual_memory() -> Option<&'static mut PD> {
 
 /// Creates page table entries for a virtual_address.
 fn map_pages(page_directory: &mut PD, virtual_address: usize, size: usize, physical_address: usize, permissions: PTFlags) -> bool {
-  let mut address: usize;
   let mut physical_address = physical_address;
-  let last: usize;
-
-  if physical_address == DEVICE_SPACE {
-    let x = 12;
-  }
-
-  address = mmu::page_round_down(virtual_address);
-  last = mmu::page_round_down(virtual_address.overflowing_add(size).0.overflowing_sub(1).0);
+  let mut address = mmu::page_round_down(virtual_address);
+  let last = mmu::page_round_down(virtual_address.overflowing_add(size).0.overflowing_sub(1).0);
+  //println!("({:x}, {:x})", address, last);
   loop {
-    //println!("a");
     match walk_page_directory(page_directory, address, true) {
       Some(page_table_entry) => {
         if page_table_entry.is_present() {
@@ -193,4 +187,12 @@ pub unsafe fn kmalloc() {
 unsafe fn switchkvm()  {
   let page_directory_address = map_virtual_to_physical(kernel_page_directory as usize);
   asm!("mov {0}, %cr3", in(reg) page_directory_address as usize, options(att_syntax));
+}
+
+/// Sets up segmentation for a cpu core. Called once for each cpu.
+/// The primary reason for using segmentation is for per cpu variables.
+/// On the pentium segmentation happens before paging.
+unsafe fn setup_segmentation() {
+  //let cpu: *mut Cpu = 0;
+  //cpuid
 }
