@@ -9,6 +9,7 @@ use memory_layout::map_physical_virtual;
 use process::Cpu;
 
 pub const MAX_CPUS: usize = 8;
+pub static mut NUM_CPUS: usize = 0;
 pub static mut CPUS: [Cpu; MAX_CPUS] = [Cpu::new(); MAX_CPUS];
 pub static mut INTERRUPT_CONTROLLER_ID: u8 = 0;
 
@@ -40,6 +41,21 @@ struct SystemDescriptionHeader {
   oem_revision: u32,
   creator_id: u32,
   creator_revision: u32
+}
+
+#[repr(C, packed)]
+#[derive(Copy, Clone)]
+struct MADTEntryHeader {
+  entry_type: u8,
+  length: u8,
+}
+
+#[repr(C, packed)]
+#[derive(Copy, Clone)]
+struct ProcessorLocalAPIC {
+  header: MADTEntryHeader,
+  apic_id: u8,
+  flags: u32
 }
 
 #[repr(C, packed)]
@@ -159,6 +175,26 @@ impl ACPI {
     unsafe {
       let madt = res.unwrap() as *const MADT;
       LOCAL_INTERRUPT_CONTROLLER = (*madt).local_apic_address as *mut u32;
+
+      let mut entry = madt.offset(1) as *const MADTEntryHeader;
+      let end = madt as usize + (*madt).header.length as usize;
+
+      while (entry as usize) < end {
+        match (*entry).entry_type {
+          0 => {
+            if NUM_CPUS < CPUS.len() {
+              let processor_local_apic = entry as *const ProcessorLocalAPIC;
+              CPUS[NUM_CPUS].apicid = (*processor_local_apic).apic_id;
+              NUM_CPUS += 1;
+            }
+          },
+          _ => {
+          }
+        }
+        entry = ((entry as usize) + (*entry).length as usize) as *const MADTEntryHeader;
+      }
+      println!("CPUS: {}", NUM_CPUS);
+
     }
 
   }
