@@ -44,7 +44,7 @@ use x86::bits32::paging::{PAGE_SIZE_ENTRIES, PD, PDEntry};
 use acpi::ACPI2;
 use memory_layout::KERNEL_BASE;
 use mmu::PAGE_DIRECTORY_INDEX_SHIFT;
-use process::user_init;
+use process::{get_current_cpu, user_init};
 use virtual_memory::kmalloc;
 
 /// The entry point into the xv6 rust kernel.
@@ -70,9 +70,13 @@ pub extern "C" fn rust_main() {
         // Todo: fix.
         local_interrupt_controller::init();
 
+        virtual_memory::setup_segmentation();
+
         // Todo: fix.
         interrupt_controller::init();
     }
+
+    println!("Current CPU: {}", get_current_cpu().apicid);
 
     //user_init();
 

@@ -130,3 +130,18 @@ pub const fn page_table_index(virtual_address: usize) -> usize {
 
 pub const PAGE_DIRECTORY_INDEX_SHIFT: usize = 22; // offset of PDX in a linear address
 pub const PAGE_TABLE_INDEX_SHIFT: usize = 12; // offset of PDX in a linear address
+
+// various segment selectors
+// kernel code
+pub const SEGMENT_KERNEL_CODE: usize = 1;
+// kernel data+stack
+pub const SEGMENT_KERNEL_DATA: usize = 2;
+// user code
+pub const SEGMENT_USER_CODE: usize = 3;
+// user data+stack
+pub const SEGMENT_USER_DATA: usize = 4;
+// this process's task state
+pub const SEGMENT_PROCESS_TASK_STATE: usize = 5;
+
+// cpu->gdt[SEGMENT_COUNT] holds the above segments.
+pub const SEGMENT_COUNT: usize = 6;

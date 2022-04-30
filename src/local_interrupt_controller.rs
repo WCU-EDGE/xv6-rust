@@ -96,3 +96,14 @@ unsafe fn write(register: u32, value: u32) {
 unsafe fn read(register: u32) -> u32 {
   LOCAL_INTERRUPT_CONTROLLER.offset(register as isize).read_volatile()
 }
+
+
+pub fn get_id() -> u8 {
+  unsafe {
+    if LOCAL_INTERRUPT_CONTROLLER.is_null() {
+      return 0;
+    }
+
+    (read(ID) >> 24) as u8
+  }
+}

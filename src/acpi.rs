@@ -1,5 +1,7 @@
 //! Advanced Configuration and Power Interface (ACPI)
 //! In xv6-rust ACPi is used to detect number of cpus and their local interrupt controller id's.
+//! This interface must not be used after the initial page table is changed.
+//! Xv6's memory map overlaps with many ACPI structures.
 
 use core::mem;
 use core::ptr::slice_from_raw_parts;

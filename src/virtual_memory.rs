@@ -2,12 +2,16 @@ use core::arch::asm;
 use core::slice;
 use x86::bits32::paging::{PAddr, PD, PDEntry, PDFlags, PT, PTEntry, PTFlags};
 use x86::controlregs::cr3_write;
+use x86::dtables::{DescriptorTablePointer, lgdt};
+use x86::Ring;
+use x86::segmentation::{CodeSegmentType, DataSegmentType, Descriptor};
 use ::{memory_layout, mmu};
-use console;
+use ::{console, process};
 use console::print;
 use memory_layout::{DEVICE_SPACE, EXTENDED_MEMORY, KERNEL_BASE, KERNEL_LINK, map_virtual_to_physical, PHYSICAL_TOP};
-use mmu::{page_round_up, PAGE_SIZE};
+use mmu::{page_round_up, PAGE_SIZE, SEGMENT_KERNEL_CODE, SEGMENT_KERNEL_DATA, SEGMENT_USER_CODE, SEGMENT_USER_DATA};
 use page_allocator::FREE_PAGE_LIST;
+use process::Cpu;
 
 struct KernelMap {
   virtual_address: usize,
@@ -192,7 +196,32 @@ unsafe fn switchkvm()  {
 /// Sets up segmentation for a cpu core. Called once for each cpu.
 /// The primary reason for using segmentation is for per cpu variables.
 /// On the pentium segmentation happens before paging.
-unsafe fn setup_segmentation() {
-  //let cpu: *mut Cpu = 0;
-  //cpuid
+pub(crate) unsafe fn setup_segmentation() {
+  let cpu: &mut Cpu = process::get_current_cpu();
+
+  cpu.gdt[SEGMENT_KERNEL_CODE] = Descriptor::default();
+  cpu.gdt[SEGMENT_KERNEL_CODE].set_type(CodeSegmentType::ExecuteRead as u8);
+  cpu.gdt[SEGMENT_KERNEL_CODE].set_base_limit(0, 0xffffffff);
+  cpu.gdt[SEGMENT_KERNEL_CODE].set_dpl(Ring::Ring0);
+
+  cpu.gdt[SEGMENT_KERNEL_DATA] = Descriptor::default();
+  cpu.gdt[SEGMENT_KERNEL_DATA].set_type(DataSegmentType::ReadWrite as u8);
+  cpu.gdt[SEGMENT_KERNEL_DATA].set_base_limit(0, 0xffffffff);
+  cpu.gdt[SEGMENT_KERNEL_DATA].set_dpl(Ring::Ring0);
+
+  cpu.gdt[SEGMENT_USER_CODE] = Descriptor::default();
+  cpu.gdt[SEGMENT_USER_CODE].set_type(CodeSegmentType::ExecuteRead as u8);
+  cpu.gdt[SEGMENT_USER_CODE].set_base_limit(0, 0xffffffff);
+  cpu.gdt[SEGMENT_USER_CODE].set_dpl(Ring::Ring3);
+
+  cpu.gdt[SEGMENT_USER_DATA] = Descriptor::default();
+  cpu.gdt[SEGMENT_USER_DATA].set_type(DataSegmentType::ReadWrite as u8);
+  cpu.gdt[SEGMENT_USER_DATA].set_base_limit(0, 0xffffffff);
+  cpu.gdt[SEGMENT_USER_DATA].set_dpl(Ring::Ring3);
+
+  let gdt_pointer = DescriptorTablePointer::new(&cpu.gdt);
+
+  lgdt(&gdt_pointer);
+
+  println!("Segmentation setup.");
 }
